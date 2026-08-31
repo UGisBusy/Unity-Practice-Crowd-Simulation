@@ -42,6 +42,10 @@ public class CrowdSpawner : MonoBehaviour
                 yield return new WaitForSeconds(spawnInterval);
                 SpawnPedestrian();
             }
+            else
+            {
+                yield return new WaitForSeconds(1);
+            }
         }
     }
 

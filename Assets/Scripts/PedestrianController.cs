@@ -1,3 +1,4 @@
+using Unity.VisualScripting;
 using UnityEngine;
 using UnityEngine.AI;
 
@@ -23,7 +24,7 @@ public class PedestrianController : MonoBehaviour
 
     private void OnTriggerEnter(Collider other)
     {
-        if (destinationSpawner != null && other.transform.IsChildOf(destinationSpawner.transform))
+        if (destinationSpawner != null && other.gameObject == destinationSpawner.gameObject)
         {
             Despawn();
         }
