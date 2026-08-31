@@ -1,0 +1,27 @@
+This is a project for learning crowd simulation in Unity. 
+The ultimate goal is to create a train station scene where pedestrians board and unboard a train.
+
+Here are more details about the scene:
+- There are four stations on the line, and a train continuously moves back and forth between them.
+- Each station features a long platform and a single gate.
+- Pedestrians spawn at both ends of the long platform. In the center of the platform, a small gate opens to allow pedestrians to board the train.
+- Each pedestrian has a specific goal, which is either:
+    - 1: Walk to the opposite end of the same platform.
+    - 2: Board the train, disembark at another station, and then head to one of the ends of that platform.
+- Pedestrians follow these behavior rules:
+    - 1: They walk and behave like real-world humans (avoiding collisions and moving toward their goal).
+    - 2: They wait in line if the train is currently unavailable.
+        - Two lines beside the gate, the pedestrians choose the closer one
+    - 3: When the train arrives, passengers on board get off first before new passengers are allowed to enter.
+    - 4: The train has both seats and standing space. passengers prioritize sitting down.
+    - 5: Passengers standing in open spaces choose a spot, but they can be pushed if others need to squeeze onto the train.
+    - 6: When disembarking, passengers try to avoid others, but they will push through if necessary.
+    - 7: If a passenger gets pushed off the train, they wait outside and re-board first once all disembarking passengers have exited.
+
+Here are some detailed requirements:
+- Crowd Spawner
+    - Configurable spawn interval
+    - Configurable global pedestrian limit
+    - Configurable goal weights for spawned pedestrians
+- Pedestrian
+    - Configurable walking speed

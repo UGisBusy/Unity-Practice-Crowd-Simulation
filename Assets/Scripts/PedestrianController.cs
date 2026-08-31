@@ -1,29 +1,37 @@
 using UnityEngine;
+using UnityEngine.AI;
 
+[RequireComponent(typeof(NavMeshAgent))]
 public class PedestrianController : MonoBehaviour
 {
-    private CrowdSpawner spawner;
+    public float walkSpeed = 10f;
 
-    public void Initialize(CrowdSpawner spawner)
+    private CrowdSpawner originSpawner;
+    private CrowdSpawner destinationSpawner;
+    private NavMeshAgent agent;
+
+    public void Initialize(CrowdSpawner originSpawner, CrowdSpawner destinationSpawner, Vector3 walkTarget)
     {
-        this.spawner = spawner;
+        this.originSpawner = originSpawner;
+        this.destinationSpawner = destinationSpawner;
+        agent = GetComponent<NavMeshAgent>();
+
+        // agent.Warp(transform.position);
+        agent.speed = walkSpeed;
+        agent.SetDestination(walkTarget);
     }
 
-    // Start is called once before the first execution of Update after the MonoBehaviour is created
-    void Start()
+    private void OnTriggerEnter(Collider other)
     {
-        Invoke("destroyPedestrain", 5f);
+        if (destinationSpawner != null && other.transform.IsChildOf(destinationSpawner.transform))
+        {
+            Despawn();
+        }
     }
 
-    // Update is called once per frame
-    void Update()
+    private void Despawn()
     {
-    }
-
-    private void destroyPedestrain()
-    {
-        spawner.OnPedestrianRemoved(gameObject);
+        originSpawner.OnPedestrianRemoved(gameObject);
         Destroy(gameObject);
     }
-
 }
