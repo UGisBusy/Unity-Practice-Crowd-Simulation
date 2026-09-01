@@ -1,3 +1,4 @@
+using Unity.VisualScripting;
 using UnityEngine;
 using UnityEngine.AI;
 
@@ -11,17 +12,17 @@ public class PedestrianController : MonoBehaviour
     {
         WalkingToDestination,
         WalkingToQueue,
-        Waiting,
+        WaitingInQueue,
+        WaitingForTrain,
     }
 
     private CrowdSpawner originSpawner;
     private CrowdSpawner destinationSpawner;
+    private WaitingQueue waitingQueue;
     private NavMeshAgent agent;
     private State state;
     private Vector3 destination;
-    private float waitTimer;
-    private int queueSlot;
-    private bool holdingQueueSlot;
+    private float waitTimer = 5f;
 
     // Goal 1: walk straight to the opposite end.
     public void Initialize(CrowdSpawner originSpawner, CrowdSpawner destinationSpawner, Vector3 destination)
@@ -37,18 +38,27 @@ public class PedestrianController : MonoBehaviour
     }
 
     // Goal 2 (partial): wait at the queue spot for a while, then continue to the opposite end.
-    public void InitializeWithQueue(CrowdSpawner originSpawner, CrowdSpawner destinationSpawner, Vector3 queuePoint, Vector3 destination, int queueSlot)
+    public void InitializeWithQueue(CrowdSpawner originSpawner, CrowdSpawner destinationSpawner, WaitingQueue waitingQueue, Vector3 destination)
     {
         this.originSpawner = originSpawner;
         this.destinationSpawner = destinationSpawner;
+        this.waitingQueue = waitingQueue;
         this.destination = destination;
-        this.queueSlot = queueSlot;
-        holdingQueueSlot = true;
+
         agent = GetComponent<NavMeshAgent>();
         agent.speed = walkSpeed;
 
+        // TODO: logic messy, check success 
+        Vector3 slotPosition;
+        waitingQueue.Enqueue(gameObject, out slotPosition);
         state = State.WalkingToQueue;
-        agent.SetDestination(queuePoint);
+        agent.SetDestination(slotPosition);
+    }
+
+    public void AdvenceInQueue(Vector3 newSlotPosition)
+    {
+        state = State.WalkingToQueue;
+        agent.SetDestination(newSlotPosition);
     }
 
     private bool HasArrived()
@@ -62,35 +72,28 @@ public class PedestrianController : MonoBehaviour
         {
             if (HasArrived())
             {
-                state = State.Waiting;
-                waitTimer = queueWaitSeconds;
+                if (waitingQueue.IsFirst(gameObject))
+                {
+                    state = State.WaitingForTrain;
+                }
+                else
+                {
+                    state = State.WaitingInQueue;
+                }
             }
         }
-        else if (state == State.Waiting)
+        else if (state == State.WaitingForTrain)
         {
             waitTimer -= Time.deltaTime;
             if (waitTimer <= 0f)
             {
-                ReleaseQueueSlot();
                 state = State.WalkingToDestination;
                 agent.SetDestination(destination);
+                waitingQueue.Dequeue(gameObject);
             }
         }
     }
 
-    private void ReleaseQueueSlot()
-    {
-        if (holdingQueueSlot)
-        {
-            originSpawner.ReleaseQueueSlot(queueSlot);
-            holdingQueueSlot = false;
-        }
-    }
-
-    private void OnDestroy()
-    {
-        ReleaseQueueSlot();
-    }
 
     private void OnTriggerEnter(Collider other)
     {
