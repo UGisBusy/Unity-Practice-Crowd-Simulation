@@ -10,13 +10,14 @@ public class CrowdSpawner : MonoBehaviour
     public GameObject pedestrianPrefab;
     public NavMeshSurface platformNavMesh;
     public CrowdSpawner otherEnd;
+    public Transform gatePoint;
 
     [Header("Destination ID Settings")]
     public List<int> DestinationWeights = new List<int> { 1, 1 };
 
     // use id to identify crowdSpawner for now
     // 0: opposite
-    // 1: wait at the gate for 5 sec before go to opposite end
+    // 1: wait at the gate in a line for 5 sec before go to opposite end
 
 
     [Header("Spawn Settings")]
@@ -25,11 +26,16 @@ public class CrowdSpawner : MonoBehaviour
     public float maxSpawnInterval = 2f;
     public float navMeshSampleDistance = 5f;
 
+    [Header("Queue Settings")]
+    public float queueSlotSpacing = 1f;
 
     private int pedestrianCount = 0;
     private List<GameObject> pedestrians;
 
-    private List<int> destinationArray;
+    private List<int> destinationArray = new List<int>();
+
+    // Which queue slots (indices along the line, back from the gate) are currently occupied.
+    private readonly List<int> occupiedQueueSlots = new List<int>();
 
     void Start()
     {
@@ -85,9 +91,10 @@ public class CrowdSpawner : MonoBehaviour
         }
         else
         {
-            // wait at the gate for 5 sec before go to opposite end
-            // TODO
-            controller.Initialize(this, otherEnd, oppositePosition);
+            // wait at the gate in a line for 5 sec before go to opposite end
+            int slot = AcquireQueueSlot();
+            Vector3 queueSlotPosition = GetQueueSlotPosition(slot);
+            controller.InitializeWithQueue(this, otherEnd, queueSlotPosition, oppositePosition, slot);
         }
 
         pedestrianCount++;
@@ -101,6 +108,33 @@ public class CrowdSpawner : MonoBehaviour
             pedestrians.Remove(pedestrian);
             pedestrianCount--;
         }
+    }
+
+    // Hands out the frontmost free slot in the line so it stays gapless as pedestrians pass through.
+    public int AcquireQueueSlot()
+    {
+        int slot = 0;
+        while (occupiedQueueSlots.Contains(slot))
+        {
+            slot++;
+        }
+        occupiedQueueSlots.Add(slot);
+        return slot;
+    }
+
+    public void ReleaseQueueSlot(int slot)
+    {
+        occupiedQueueSlots.Remove(slot);
+    }
+
+    // Slot 0 is closest to the gate; the line extends back toward this spawner's own end,
+    // staying at the gate's height so every slot lands on the walkable surface.
+    public Vector3 GetQueueSlotPosition(int slot)
+    {
+        Vector3 gatePosition = gatePoint.position;
+        Vector3 originFlat = new Vector3(transform.position.x, gatePosition.y, transform.position.z);
+        Vector3 lineDirection = (originFlat - gatePosition).normalized;
+        return gatePosition + lineDirection * (slot + 1) * queueSlotSpacing;
     }
 
     private void PopulateDestinationArray()
