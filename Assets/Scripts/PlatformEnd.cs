@@ -5,21 +5,20 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine.Rendering;
 
-public class CrowdSpawner : MonoBehaviour
+public class PlatformEnd : MonoBehaviour
 {
     [Header("References")]
     public GameObject pedestrianPrefab;
     public NavMeshSurface platformNavMesh;
-    public CrowdSpawner otherEnd;
+    public PlatformEnd otherEnd;
     public Transform gatePoint;
 
     [Header("Destination ID Settings")]
     public List<int> DestinationWeights = new List<int> { 1, 1 };
 
-    // use id to identify crowdSpawner for now
+    // use id to identify platformEnd for now
     // 0: opposite
     // 1: wait at the gate in a line for 5 sec before go to opposite end
-
 
     [Header("Spawn Settings")]
     public int maxPedestrians = 10;
@@ -86,22 +85,22 @@ public class CrowdSpawner : MonoBehaviour
         Vector3 spawnPosition = transform.TransformPoint(localPoint);
         Vector3 oppositePosition = otherEnd.transform.TransformPoint(localPoint);
 
-        GameObject pedestrian = Instantiate(pedestrianPrefab, spawnPosition, Quaternion.identity);
-        PedestrianController controller = pedestrian.AddComponent<PedestrianController>();
+        GameObject pedestrianObj = Instantiate(pedestrianPrefab, spawnPosition, Quaternion.identity);
+        Pedestrian pedestrian = pedestrianObj.AddComponent<Pedestrian>();
 
         int destId = GetRandomDestinationId();
 
         if (destId == 0)
         {
-            controller.Initialize(this, otherEnd, oppositePosition);
+            pedestrian.Initialize(this, otherEnd, oppositePosition);
         }
         else
         {
-            controller.InitializeWithQueue(this, otherEnd, waitingQueue, oppositePosition);
+            pedestrian.InitializeWithQueue(this, otherEnd, waitingQueue, oppositePosition);
         }
 
         pedestrianCount++;
-        pedestrians.Add(pedestrian);
+        pedestrians.Add(pedestrianObj);
     }
 
     public void OnPedestrianRemoved(GameObject pedestrian)

@@ -3,7 +3,7 @@ using UnityEngine;
 using UnityEngine.AI;
 
 [RequireComponent(typeof(NavMeshAgent))]
-public class PedestrianController : MonoBehaviour
+public class Pedestrian : MonoBehaviour
 {
     public float walkSpeed = 10f;
     public float queueWaitSeconds = 5f;
@@ -16,8 +16,8 @@ public class PedestrianController : MonoBehaviour
         WaitingForTrain,
     }
 
-    private CrowdSpawner originSpawner;
-    private CrowdSpawner destinationSpawner;
+    private PlatformEnd originSpawner;
+    private PlatformEnd destinationSpawner;
     private WaitingQueue waitingQueue;
     private NavMeshAgent agent;
     private State state;
@@ -25,7 +25,7 @@ public class PedestrianController : MonoBehaviour
     private float waitTimer = 5f;
 
     // Goal 1: walk straight to the opposite end.
-    public void Initialize(CrowdSpawner originSpawner, CrowdSpawner destinationSpawner, Vector3 destination)
+    public void Initialize(PlatformEnd originSpawner, PlatformEnd destinationSpawner, Vector3 destination)
     {
         this.originSpawner = originSpawner;
         this.destinationSpawner = destinationSpawner;
@@ -38,7 +38,7 @@ public class PedestrianController : MonoBehaviour
     }
 
     // Goal 2 (partial): wait at the queue spot for a while, then continue to the opposite end.
-    public void InitializeWithQueue(CrowdSpawner originSpawner, CrowdSpawner destinationSpawner, WaitingQueue waitingQueue, Vector3 destination)
+    public void InitializeWithQueue(PlatformEnd originSpawner, PlatformEnd destinationSpawner, WaitingQueue waitingQueue, Vector3 destination)
     {
         this.originSpawner = originSpawner;
         this.destinationSpawner = destinationSpawner;
@@ -55,7 +55,7 @@ public class PedestrianController : MonoBehaviour
         agent.SetDestination(slotPosition);
     }
 
-    public void AdvenceInQueue(Vector3 newSlotPosition)
+    public void AdvanceInQueue(Vector3 newSlotPosition)
     {
         state = State.WalkingToQueue;
         agent.SetDestination(newSlotPosition);
@@ -93,7 +93,6 @@ public class PedestrianController : MonoBehaviour
             }
         }
     }
-
 
     private void OnTriggerEnter(Collider other)
     {

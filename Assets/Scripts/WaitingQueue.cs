@@ -54,11 +54,12 @@ public class WaitingQueue
         }
 
         int newSlot = 0;
-        foreach (GameObject pedestrian in queue)
+        foreach (GameObject pedestrianObj in queue)
         {
-            Vector3 newSlotPoisition = GetSlotPosition(newSlot);
-            PedestrianController controller = pedestrian.GetComponent<PedestrianController>();
-            controller.AdvenceInQueue(newSlotPoisition);
+            Vector3 newSlotPosition = GetSlotPosition(newSlot);
+            Pedestrian pedestrian = pedestrianObj.GetComponent<Pedestrian>();
+
+            pedestrian.AdvanceInQueue(newSlotPosition);
             newSlot++;
         }
     }
@@ -71,11 +72,6 @@ public class WaitingQueue
     public bool IsFirst(GameObject pedestrian)
     {
         return queue.Count > 0 && queue.Peek() == pedestrian;
-    }
-
-    public int GetCount()
-    {
-        return queue.Count;
     }
 
     public Vector3 GetSlotPosition(int slot)
