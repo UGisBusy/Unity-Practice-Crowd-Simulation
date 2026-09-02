@@ -2,6 +2,7 @@ using UnityEngine;
 
 public static class Utils
 {
+    public const int STATION_COUNT = 1;
     public enum PlatformEndId
     {
         Station1A,

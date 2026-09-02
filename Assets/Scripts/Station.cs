@@ -5,18 +5,12 @@ public class Station : MonoBehaviour
     private PlatformEnd[] platformEnds;
     private Gate gate;
 
-    // TODO: assign id somewhere
-    private int id = 0;
+    private int id;
 
-    private void InitializePlatormEnds()
+    public void Initialize(int id)
     {
-        platformEnds[0].Initilize(platformEnds[1], (Utils.PlatformEndId)(id * 2));
-        platformEnds[1].Initilize(platformEnds[0], (Utils.PlatformEndId)(id * 2 + 1));
-    }
+        this.id = id;
 
-    // Start is called once before the first execution of Update after the MonoBehaviour is created
-    void Start()
-    {
         platformEnds = GetComponentsInChildren<PlatformEnd>();
         if (platformEnds.Length != 2)
         {
@@ -34,7 +28,17 @@ public class Station : MonoBehaviour
         InitializePlatormEnds();
     }
 
-    // Update is called once per frame
+    private void InitializePlatormEnds()
+    {
+        platformEnds[0].Initilize(platformEnds[1], (Utils.PlatformEndId)(id * 2));
+        platformEnds[1].Initilize(platformEnds[0], (Utils.PlatformEndId)(id * 2 + 1));
+    }
+
+    void Start()
+    {
+
+    }
+
     void Update()
     {
 

@@ -95,7 +95,6 @@ public class PlatformEnd : MonoBehaviour
         GameObject pedestrianObj = Instantiate(pedestrianPrefab, spawnPosition, Quaternion.identity);
         Pedestrian pedestrian = pedestrianObj.AddComponent<Pedestrian>();
 
-
         Utils.PlatformEndId goalId = GetRandomGoalId();
 
         if (Utils.IsSameStation(goalId, id))
@@ -107,7 +106,6 @@ public class PlatformEnd : MonoBehaviour
         {
             // passenger
             pedestrian.InitializeWithQueue(this, waitingQueue, oppositePosition);
-
         }
 
         pedestrianCount++;
