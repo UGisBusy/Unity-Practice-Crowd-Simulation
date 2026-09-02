@@ -20,7 +20,11 @@ public class PlatformEnd : MonoBehaviour
         1, // Station1A
         1, // Station1B
         1, // Station2A
-        0  // Station2B
+        1, // Station2B
+        1, // Station3A
+        1, // Station3B
+        1, // Station4A
+        1, // Station4B
     };
 
     [Header("Spawn Settings")]
