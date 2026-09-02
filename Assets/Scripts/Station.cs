@@ -2,36 +2,78 @@ using UnityEngine;
 
 public class Station : MonoBehaviour
 {
-    private PlatformEnd[] platformEnds;
-    private Gate gate;
+    [Tooltip("Distance from the line between the two PlatformEnds out to the gate, i.e. the platform's half-width.")]
+    public float platformDepth = 20f;
 
+    public Vector3 gatePosition;
+
+    private PlatformEnd platformEndA;
+    private PlatformEnd platformEndB;
+    private WaitingQueue queueA;
+    private WaitingQueue queueB;
+
+    private float gateWidth;
     private int id;
 
-    public void Initialize(int id)
+    public void Initialize(int id, float gateWidth)
     {
         this.id = id;
+        this.gateWidth = gateWidth;
 
-        platformEnds = GetComponentsInChildren<PlatformEnd>();
+        PlatformEnd[] platformEnds = GetComponentsInChildren<PlatformEnd>();
         if (platformEnds.Length != 2)
         {
             Debug.LogError($"Station {name} must have 2 PlatformEnd");
             return;
         }
+        platformEndA = platformEnds[0];
+        platformEndB = platformEnds[1];
 
-        // gate = GetComponentInChildren<Gate>();
-        // if (gate == null)
-        // {
-        //     Debug.LogError($"Station {name} must have 1 Gate");
-        //     return;
-        // }
+        ComputeGatePosition();
+
+        queueA = BuildWaitingQueue(platformEndA, platformEndB);
+        queueB = BuildWaitingQueue(platformEndB, platformEndA);
 
         InitializePlatormEnds();
     }
 
+    private void ComputeGatePosition()
+    {
+        Vector3 centerline = (platformEndA.transform.position + platformEndB.transform.position) / 2f;
+        Vector3 topDirection = new Vector3(transform.forward.x, 0f, transform.forward.z).normalized;
+        gatePosition = centerline + topDirection * platformDepth;
+    }
+
     private void InitializePlatormEnds()
     {
-        platformEnds[0].Initilize(platformEnds[1], (Utils.PlatformEndId)(id * 2));
-        platformEnds[1].Initilize(platformEnds[0], (Utils.PlatformEndId)(id * 2 + 1));
+        platformEndA.Initilize(platformEndB, (Utils.PlatformEndId)(id * 2), this);
+        platformEndB.Initilize(platformEndA, (Utils.PlatformEndId)(id * 2 + 1), this);
+    }
+
+    private WaitingQueue BuildWaitingQueue(PlatformEnd platformEnd, PlatformEnd otherEnd)
+    {
+        WaitingQueue waitingQueue = new WaitingQueue();
+        Vector3 alongPlatform = platformEnd.transform.position - otherEnd.transform.position;
+        Vector3 lineDirection = new Vector3(alongPlatform.x, 0f, alongPlatform.z).normalized;
+
+        float firstSlotOffset = gateWidth / 2f + waitingQueue.slotSpacing;
+        waitingQueue.Initialize(gatePosition + lineDirection * firstSlotOffset, lineDirection);
+        return waitingQueue;
+    }
+
+    public WaitingQueue ChooseQueue(Vector3 fromPosition)
+    {
+        if (queueA.Count == queueB.Count)
+        {
+            Vector3 nextSlotA = queueA.GetSlotPosition(queueA.Count);
+            Vector3 nextSlotB = queueB.GetSlotPosition(queueB.Count);
+
+            float sqrDistA = (nextSlotA - fromPosition).sqrMagnitude;
+            float sqrDistB = (nextSlotB - fromPosition).sqrMagnitude;
+            return sqrDistA < sqrDistB ? queueA : queueB;
+        }
+
+        return queueA.Count < queueB.Count ? queueA : queueB;
     }
 
     void Start()

@@ -8,11 +8,13 @@ public class WaitingQueue
     public Vector3 originPosition;
     public Vector3 lineDirection;
 
-    public float slotSpacing = 1f;
+    public float slotSpacing = 1.5f;
 
     public int maxSlot = 1000;
 
     private Queue<GameObject> queue = new Queue<GameObject>();
+
+    public int Count => queue.Count;
 
     public void Initialize(Vector3 originPosition, Vector3 lineDirection)
     {

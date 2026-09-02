@@ -14,8 +14,7 @@ public class Train : MonoBehaviour
     public float floorHeight = 0.15f;
 
     [Header("Gate")]
-    [Tooltip("Width of the boarding gate gap in the middle of the train that seats must leave clear.")]
-    public float gateWidth = 3f;
+
     [Tooltip("Seconds between the gate toggling open/closed.")]
     public float gateOpenInterval = 10f;
     [Tooltip("The station platform's gate point this train bridges to when docked. Assign when placing the train next to a platform.")]
@@ -31,6 +30,8 @@ public class Train : MonoBehaviour
     [Tooltip("Margin kept clear at both ends of the train.")]
     public float endMargin = 0.8f;
 
+    // TODO: assign by network
+    private float gateWidth = 3f;
     void Awake()
     {
         ResizeFloor();

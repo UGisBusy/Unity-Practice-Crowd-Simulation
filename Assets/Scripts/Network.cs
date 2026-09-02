@@ -4,6 +4,7 @@ using UnityEngine;
 public class Network : MonoBehaviour
 {
 
+    public float gateWidth = 3f;
     private Station[] stations;
 
     void Start()
@@ -28,7 +29,7 @@ public class Network : MonoBehaviour
 
         for (int id = 0; id < Utils.STATION_COUNT; id++)
         {
-            stations[id].Initialize(id);
+            stations[id].Initialize(id, gateWidth);
         }
     }
 }

@@ -12,7 +12,6 @@ public class PlatformEnd : MonoBehaviour
     [Header("References")]
     public GameObject pedestrianPrefab;
     public NavMeshSurface platformNavMesh;
-    public Transform gatePoint;
 
     [Header("Goal Settings")]
 
@@ -31,7 +30,7 @@ public class PlatformEnd : MonoBehaviour
     public float navMeshSampleDistance = 5f;
 
     private PlatformEnd otherEnd;
-    private WaitingQueue waitingQueue;
+    private Station station;
 
     private int pedestrianCount = 0;
     private List<Pedestrian> pedestrians;
@@ -40,10 +39,11 @@ public class PlatformEnd : MonoBehaviour
     private List<Utils.PlatformEndId> goalArray = new List<Utils.PlatformEndId>();
 
 
-    public void Initilize(PlatformEnd otherEnd, Utils.PlatformEndId id)
+    public void Initilize(PlatformEnd otherEnd, Utils.PlatformEndId id, Station station)
     {
         this.otherEnd = otherEnd;
         this.id = id;
+        this.station = station;
 
         pedestrians = new List<Pedestrian>();
         if (platformNavMesh != null && platformNavMesh.navMeshData == null)
@@ -51,12 +51,6 @@ public class PlatformEnd : MonoBehaviour
             platformNavMesh.BuildNavMesh();
         }
         PopulateGoalArray();
-
-        waitingQueue = new WaitingQueue();
-        Vector3 gatePosition = gatePoint.position;
-        Vector3 originFlat = new Vector3(transform.position.x, gatePosition.y, transform.position.z);
-        Vector3 lineDirection = (originFlat - gatePosition).normalized;
-        waitingQueue.Initialize(gatePosition + lineDirection * 1f, lineDirection);
 
         StartCoroutine(SpawnPedestrianCoroutine());
     }
@@ -105,7 +99,8 @@ public class PlatformEnd : MonoBehaviour
         else
         {
             // passenger
-            pedestrian.InitializeWithQueue(this, waitingQueue, oppositePosition);
+            WaitingQueue queue = station.ChooseQueue(spawnPosition);
+            pedestrian.InitializeWithQueue(this, queue, oppositePosition);
         }
 
         pedestrianCount++;
