@@ -8,7 +8,7 @@ public class WaitingQueue
     public Vector3 originPosition;
     public Vector3 lineDirection;
 
-    public float slotSpacing = 1.5f;
+    public float slotSpacing = 3f;
 
     public int maxSlot = 1000;
 

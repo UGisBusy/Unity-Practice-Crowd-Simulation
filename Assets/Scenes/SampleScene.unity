@@ -548,7 +548,7 @@ MonoBehaviour:
   pedestrianPrefab: {fileID: 5401925545230314957, guid: 6d022d8c0ac258646b99bead3667aff7, type: 3}
   platformNavMesh: {fileID: 20000016}
   GoalWeights: 0100000001000000010000000100000001000000010000000100000001000000
-  maxPedestrians: 20
+  maxPedestrians: 10
   minSpawnInterval: 0.1
   maxSpawnInterval: 0.2
   navMeshSampleDistance: 5
@@ -1008,7 +1008,7 @@ MonoBehaviour:
   pedestrianPrefab: {fileID: 5401925545230314957, guid: 6d022d8c0ac258646b99bead3667aff7, type: 3}
   platformNavMesh: {fileID: 30000016}
   GoalWeights: 0100000001000000010000000100000001000000010000000100000001000000
-  maxPedestrians: 20
+  maxPedestrians: 10
   minSpawnInterval: 0.1
   maxSpawnInterval: 0.2
   navMeshSampleDistance: 5
@@ -1333,7 +1333,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   pedestrianPrefab: {fileID: 5401925545230314957, guid: 6d022d8c0ac258646b99bead3667aff7, type: 3}
   platformNavMesh: {fileID: 40000016}
-  GoalWeights: 0100000001000000010000000100000001000000010000000100000001000000
+  GoalWeights: 0100000001000000010000000100000001000000010000000a0000000a000000
   maxPedestrians: 10
   minSpawnInterval: 1
   maxSpawnInterval: 2
@@ -1467,8 +1467,8 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   pedestrianPrefab: {fileID: 5401925545230314957, guid: 6d022d8c0ac258646b99bead3667aff7, type: 3}
   platformNavMesh: {fileID: 40000016}
-  GoalWeights: 0100000001000000010000000100000001000000010000000100000001000000
-  maxPedestrians: 20
+  GoalWeights: 0100000001000000010000000100000001000000010000001400000014000000
+  maxPedestrians: 10
   minSpawnInterval: 0.1
   maxSpawnInterval: 0.2
   navMeshSampleDistance: 5
@@ -2601,7 +2601,7 @@ MonoBehaviour:
   pedestrianPrefab: {fileID: 5401925545230314957, guid: 6d022d8c0ac258646b99bead3667aff7, type: 3}
   platformNavMesh: {fileID: 900000001}
   GoalWeights: 0100000001000000010000000100000001000000010000000100000001000000
-  maxPedestrians: 20
+  maxPedestrians: 10
   minSpawnInterval: 0.1
   maxSpawnInterval: 0.2
   navMeshSampleDistance: 5
