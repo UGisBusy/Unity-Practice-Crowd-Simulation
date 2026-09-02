@@ -1,4 +1,3 @@
-using Unity.VisualScripting;
 using UnityEngine;
 using UnityEngine.AI;
 
@@ -7,6 +6,8 @@ public class Pedestrian : MonoBehaviour
 {
     public float walkSpeed = 10f;
     public float queueWaitSeconds = 5f;
+    public float stoppingDistance = 0.3f;
+    public float stuckTimeout = 3f;
 
     private enum State
     {
@@ -17,40 +18,38 @@ public class Pedestrian : MonoBehaviour
     }
 
     private PlatformEnd originSpawner;
-    private PlatformEnd destinationSpawner;
     private WaitingQueue waitingQueue;
     private NavMeshAgent agent;
     private State state;
     private Vector3 destination;
     private float waitTimer = 5f;
+    private float arrivalStallTimer;
 
     // Goal 1: walk straight to the opposite end.
-    public void Initialize(PlatformEnd originSpawner, PlatformEnd destinationSpawner, Vector3 destination)
+    public void Initialize(PlatformEnd originSpawner, Vector3 destination)
     {
         this.originSpawner = originSpawner;
-        this.destinationSpawner = destinationSpawner;
         this.destination = destination;
         agent = GetComponent<NavMeshAgent>();
         agent.speed = walkSpeed;
+        agent.stoppingDistance = stoppingDistance;
 
         state = State.WalkingToDestination;
         agent.SetDestination(destination);
     }
 
-    // Goal 2 (partial): wait at the queue spot for a while, then continue to the opposite end.
-    public void InitializeWithQueue(PlatformEnd originSpawner, PlatformEnd destinationSpawner, WaitingQueue waitingQueue, Vector3 destination)
+    public void InitializeWithQueue(PlatformEnd originSpawner, WaitingQueue waitingQueue, Vector3 destination)
     {
         this.originSpawner = originSpawner;
-        this.destinationSpawner = destinationSpawner;
         this.waitingQueue = waitingQueue;
         this.destination = destination;
 
         agent = GetComponent<NavMeshAgent>();
         agent.speed = walkSpeed;
+        agent.stoppingDistance = stoppingDistance;
 
-        // TODO: logic messy, check success 
-        Vector3 slotPosition;
-        waitingQueue.Enqueue(gameObject, out slotPosition);
+        // TODO: logic messy, check success
+        waitingQueue.Enqueue(gameObject, out Vector3 slotPosition);
         state = State.WalkingToQueue;
         agent.SetDestination(slotPosition);
     }
@@ -63,7 +62,26 @@ public class Pedestrian : MonoBehaviour
 
     private bool HasArrived()
     {
-        return !agent.pathPending && agent.remainingDistance <= agent.stoppingDistance && agent.velocity.sqrMagnitude < 0.01f;
+        if (agent.pathPending)
+        {
+            return false;
+        }
+
+        if (agent.remainingDistance <= agent.stoppingDistance)
+        {
+            arrivalStallTimer = 0f;
+            return true;
+        }
+
+        // prevent stuck
+        arrivalStallTimer += Time.deltaTime;
+        if (arrivalStallTimer >= stuckTimeout && agent.velocity.sqrMagnitude < 0.01f)
+        {
+            arrivalStallTimer = 0f;
+            return true;
+        }
+
+        return false;
     }
 
     void Update()
@@ -92,24 +110,18 @@ public class Pedestrian : MonoBehaviour
                 waitingQueue.Dequeue(gameObject);
             }
         }
-    }
-
-    private void OnTriggerEnter(Collider other)
-    {
-        if (state != State.WalkingToDestination)
+        else if (state == State.WalkingToDestination)
         {
-            return;
-        }
-
-        if (destinationSpawner != null && other.gameObject == destinationSpawner.gameObject)
-        {
-            Despawn();
+            if (HasArrived())
+            {
+                Despawn();
+            }
         }
     }
 
     private void Despawn()
     {
-        originSpawner.OnPedestrianRemoved(gameObject);
+        originSpawner.OnPedestrianRemoved(this);
         Destroy(gameObject);
     }
 }

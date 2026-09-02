@@ -129,7 +129,7 @@ public class Train : MonoBehaviour
         marker.transform.localScale = new Vector3(gateWidth, 0.05f, 0.4f);
         Destroy(marker.GetComponent<BoxCollider>());
 
-        TrainGate trainGate = gate.AddComponent<TrainGate>();
+        Gate trainGate = gate.AddComponent<Gate>();
         trainGate.cycleInterval = gateOpenInterval;
     }
 }

@@ -2,7 +2,7 @@ using UnityEngine;
 using Unity.AI.Navigation;
 
 [RequireComponent(typeof(NavMeshLink))]
-public class TrainGate : MonoBehaviour
+public class Gate : MonoBehaviour
 {
     public float cycleInterval = 5f;
 

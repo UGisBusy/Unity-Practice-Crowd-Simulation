@@ -5,20 +5,24 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine.Rendering;
 
+
 public class PlatformEnd : MonoBehaviour
 {
+
     [Header("References")]
     public GameObject pedestrianPrefab;
     public NavMeshSurface platformNavMesh;
-    public PlatformEnd otherEnd;
     public Transform gatePoint;
 
-    [Header("Destination ID Settings")]
-    public List<int> DestinationWeights = new List<int> { 1, 1 };
+    [Header("Goal Settings")]
 
-    // use id to identify platformEnd for now
-    // 0: opposite
-    // 1: wait at the gate in a line for 5 sec before go to opposite end
+    public int[] GoalWeights = new int[]
+    {
+        1, // Station1A
+        1, // Station1B
+        1, // Station2A
+        0  // Station2B
+    };
 
     [Header("Spawn Settings")]
     public int maxPedestrians = 10;
@@ -26,24 +30,27 @@ public class PlatformEnd : MonoBehaviour
     public float maxSpawnInterval = 2f;
     public float navMeshSampleDistance = 5f;
 
-    WaitingQueue waitingQueue;
+    private PlatformEnd otherEnd;
+    private WaitingQueue waitingQueue;
 
     private int pedestrianCount = 0;
-    private List<GameObject> pedestrians;
+    private List<Pedestrian> pedestrians;
 
-    private List<int> destinationArray = new List<int>();
+    private Utils.PlatformEndId id;
+    private List<Utils.PlatformEndId> goalArray = new List<Utils.PlatformEndId>();
 
-    // Which queue slots (indices along the line, back from the gate) are currently occupied.
-    private readonly List<int> occupiedQueueSlots = new List<int>();
 
-    void Start()
+    public void Initilize(PlatformEnd otherEnd, Utils.PlatformEndId id)
     {
-        pedestrians = new List<GameObject>();
+        this.otherEnd = otherEnd;
+        this.id = id;
+
+        pedestrians = new List<Pedestrian>();
         if (platformNavMesh != null && platformNavMesh.navMeshData == null)
         {
             platformNavMesh.BuildNavMesh();
         }
-        PopulateDestinationArray();
+        PopulateGoalArray();
 
         waitingQueue = new WaitingQueue();
         Vector3 gatePosition = gatePoint.position;
@@ -88,22 +95,27 @@ public class PlatformEnd : MonoBehaviour
         GameObject pedestrianObj = Instantiate(pedestrianPrefab, spawnPosition, Quaternion.identity);
         Pedestrian pedestrian = pedestrianObj.AddComponent<Pedestrian>();
 
-        int destId = GetRandomDestinationId();
 
-        if (destId == 0)
+        Utils.PlatformEndId goalId = GetRandomGoalId();
+
+        if (Utils.IsSameStation(goalId, id))
         {
-            pedestrian.Initialize(this, otherEnd, oppositePosition);
+            // passthrough
+            pedestrian.Initialize(this, oppositePosition);
         }
         else
         {
-            pedestrian.InitializeWithQueue(this, otherEnd, waitingQueue, oppositePosition);
+            // passenger
+            pedestrian.InitializeWithQueue(this, waitingQueue, oppositePosition);
+
         }
 
         pedestrianCount++;
-        pedestrians.Add(pedestrianObj);
+        pedestrians.Add(pedestrian);
     }
 
-    public void OnPedestrianRemoved(GameObject pedestrian)
+
+    public void OnPedestrianRemoved(Pedestrian pedestrian)
     {
         if (pedestrians.Contains(pedestrian))
         {
@@ -112,21 +124,22 @@ public class PlatformEnd : MonoBehaviour
         }
     }
 
-    private void PopulateDestinationArray()
+    private void PopulateGoalArray()
     {
-        for (int i = 0; i < DestinationWeights.Count; i++)
+        for (int i = 0; i < GoalWeights.Length; i++)
         {
-            // if (i == DestinationId) continue;
-            for (int w = 0; w < DestinationWeights[i]; w++)
+            Utils.PlatformEndId id = (Utils.PlatformEndId)i;
+            if (id == this.id) continue;
+            for (int j = 0; j < GoalWeights[i]; j++)
             {
-                destinationArray.Add(i);
+                goalArray.Add(id);
             }
         }
     }
 
-    private int GetRandomDestinationId()
+    private Utils.PlatformEndId GetRandomGoalId()
     {
-        int i = Random.Range(0, destinationArray.Count);
-        return destinationArray[i];
+        int i = Random.Range(0, goalArray.Count);
+        return goalArray[i];
     }
 }
