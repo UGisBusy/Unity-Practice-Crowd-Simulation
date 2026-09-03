@@ -53,6 +53,7 @@ public class Station : MonoBehaviour
     private WaitingQueue BuildWaitingQueue(PlatformEnd platformEnd, PlatformEnd otherEnd)
     {
         WaitingQueue waitingQueue = new WaitingQueue();
+        waitingQueue.stationId = id;
         Vector3 alongPlatform = platformEnd.transform.position - otherEnd.transform.position;
         Vector3 lineDirection = new Vector3(alongPlatform.x, 0f, alongPlatform.z).normalized;
 

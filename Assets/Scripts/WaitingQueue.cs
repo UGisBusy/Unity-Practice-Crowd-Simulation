@@ -7,6 +7,7 @@ public class WaitingQueue
 {
     public Vector3 originPosition;
     public Vector3 lineDirection;
+    public int stationId;
 
     public float slotSpacing = 3f;
 

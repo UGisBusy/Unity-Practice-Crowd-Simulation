@@ -3,6 +3,12 @@ using UnityEngine;
 
 public class Network : MonoBehaviour
 {
+    enum TrainState
+    {
+        Waiting,
+        Moving,
+    }
+
 
     public float gateWidth = 10f;
     public float trainStopDuration = 5f;
@@ -12,7 +18,7 @@ public class Network : MonoBehaviour
     private Train train;
     private int trainStationIndex;
     private int trainDirection;
-    private bool trainArrived;
+    private TrainState trainState;
     private float trainStopTimer;
 
     void Start()
@@ -31,7 +37,6 @@ public class Network : MonoBehaviour
 
     public void OnTrainArrive()
     {
-        trainArrived = true;
         trainStopTimer = trainStopDuration;
     }
 
@@ -67,7 +72,7 @@ public class Network : MonoBehaviour
         train.Initialize(this, gateWidth, stationGatePositions);
         trainStationIndex = 0;
         trainDirection = 1;
-        trainArrived = true;
+        trainState = TrainState.Waiting;
         trainStopTimer = trainStopDuration;
     }
 
@@ -78,12 +83,21 @@ public class Network : MonoBehaviour
             return;
         }
 
-        if (trainArrived)
+        if (trainState == TrainState.Waiting)
         {
             trainStopTimer -= Time.deltaTime;
             if (trainStopTimer <= 0f)
             {
+                trainState = TrainState.Moving;
                 AdvanceTrain();
+            }
+        }
+        else if (trainState == TrainState.Moving)
+        {
+            if (train.IsAtStation(trainStationIndex))
+            {
+                trainState = TrainState.Waiting;
+                trainStopTimer = trainStopDuration;
             }
         }
     }
@@ -105,7 +119,6 @@ public class Network : MonoBehaviour
 
         trainStationIndex = next;
         train.GoToStation(trainStationIndex);
-        trainArrived = false;
     }
 
 }

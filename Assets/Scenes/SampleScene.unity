@@ -413,7 +413,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   pedestrianPrefab: {fileID: 5401925545230314957, guid: 6d022d8c0ac258646b99bead3667aff7, type: 3}
   platformNavMesh: {fileID: 20000016}
-  GoalWeights: 0100000001000000010000000100000001000000010000000100000001000000
+  DestinationWeights: 0100000001000000010000000100000001000000010000000100000001000000
   maxPedestrians: 10
   minSpawnInterval: 1
   maxSpawnInterval: 2
@@ -547,7 +547,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   pedestrianPrefab: {fileID: 5401925545230314957, guid: 6d022d8c0ac258646b99bead3667aff7, type: 3}
   platformNavMesh: {fileID: 20000016}
-  GoalWeights: 0100000001000000010000000100000001000000010000000100000001000000
+  DestinationWeights: 0100000001000000010000000100000001000000010000000100000001000000
   maxPedestrians: 10
   minSpawnInterval: 0.1
   maxSpawnInterval: 0.2
@@ -873,7 +873,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   pedestrianPrefab: {fileID: 5401925545230314957, guid: 6d022d8c0ac258646b99bead3667aff7, type: 3}
   platformNavMesh: {fileID: 30000016}
-  GoalWeights: 0100000001000000010000000100000001000000010000000100000001000000
+  DestinationWeights: 0100000001000000010000000100000001000000010000000100000001000000
   maxPedestrians: 10
   minSpawnInterval: 1
   maxSpawnInterval: 2
@@ -1007,7 +1007,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   pedestrianPrefab: {fileID: 5401925545230314957, guid: 6d022d8c0ac258646b99bead3667aff7, type: 3}
   platformNavMesh: {fileID: 30000016}
-  GoalWeights: 0100000001000000010000000100000001000000010000000100000001000000
+  DestinationWeights: 0100000001000000010000000100000001000000010000000100000001000000
   maxPedestrians: 10
   minSpawnInterval: 0.1
   maxSpawnInterval: 0.2
@@ -1333,7 +1333,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   pedestrianPrefab: {fileID: 5401925545230314957, guid: 6d022d8c0ac258646b99bead3667aff7, type: 3}
   platformNavMesh: {fileID: 40000016}
-  GoalWeights: 0100000001000000010000000100000001000000010000000a0000000a000000
+  DestinationWeights: 0100000001000000010000000100000001000000010000000100000001000000
   maxPedestrians: 10
   minSpawnInterval: 1
   maxSpawnInterval: 2
@@ -1467,7 +1467,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   pedestrianPrefab: {fileID: 5401925545230314957, guid: 6d022d8c0ac258646b99bead3667aff7, type: 3}
   platformNavMesh: {fileID: 40000016}
-  GoalWeights: 0100000001000000010000000100000001000000010000001400000014000000
+  DestinationWeights: 0100000001000000010000000100000001000000010000000100000001000000
   maxPedestrians: 10
   minSpawnInterval: 0.1
   maxSpawnInterval: 0.2
@@ -1529,6 +1529,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   gateWidth: 10
+  trainStopDuration: 5
 --- !u!4 &129393017
 Transform:
   m_ObjectHideFlags: 0
@@ -1538,7 +1539,7 @@ Transform:
   m_GameObject: {fileID: 129393015}
   serializedVersion: 2
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: 0, y: 0.15, z: 19.1}
+  m_LocalPosition: {x: 0, y: 0, z: 19.1}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children:
@@ -2582,7 +2583,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   pedestrianPrefab: {fileID: 5401925545230314957, guid: 6d022d8c0ac258646b99bead3667aff7, type: 3}
   platformNavMesh: {fileID: 900000001}
-  GoalWeights: 0100000001000000010000000100000001000000010000000100000001000000
+  DestinationWeights: 0100000001000000010000000100000001000000010000000100000001000000
   maxPedestrians: 10
   minSpawnInterval: 1
   maxSpawnInterval: 2
@@ -2601,7 +2602,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   pedestrianPrefab: {fileID: 5401925545230314957, guid: 6d022d8c0ac258646b99bead3667aff7, type: 3}
   platformNavMesh: {fileID: 900000001}
-  GoalWeights: 0100000001000000010000000100000001000000010000000100000001000000
+  DestinationWeights: 0100000001000000010000000100000001000000010000000100000001000000
   maxPedestrians: 10
   minSpawnInterval: 0.1
   maxSpawnInterval: 0.2
@@ -3094,6 +3095,14 @@ PrefabInstance:
       propertyPath: seatCount
       value: 40
       objectReference: {fileID: 0}
+    - target: {fileID: 900001001, guid: 934e3cacae0c2a043a60fd519201821b, type: 3}
+      propertyPath: floorHeight
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 900001001, guid: 934e3cacae0c2a043a60fd519201821b, type: 3}
+      propertyPath: defaultBridgeDistance
+      value: 1.5
+      objectReference: {fileID: 0}
     - target: {fileID: 2449413551406803434, guid: 934e3cacae0c2a043a60fd519201821b, type: 3}
       propertyPath: m_Name
       value: Train
@@ -3140,11 +3149,11 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 7593751267401791472, guid: 934e3cacae0c2a043a60fd519201821b, type: 3}
       propertyPath: m_LocalPosition.y
-      value: -0.15
+      value: 0
       objectReference: {fileID: 0}
     - target: {fileID: 7593751267401791472, guid: 934e3cacae0c2a043a60fd519201821b, type: 3}
       propertyPath: m_LocalPosition.z
-      value: 6.5
+      value: 6
       objectReference: {fileID: 0}
     - target: {fileID: 7593751267401791472, guid: 934e3cacae0c2a043a60fd519201821b, type: 3}
       propertyPath: m_LocalRotation.w

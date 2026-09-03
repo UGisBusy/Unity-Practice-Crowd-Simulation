@@ -5,7 +5,6 @@ using UnityEngine.AI;
 public class Pedestrian : MonoBehaviour
 {
     public float walkSpeed = 10f;
-    public float queueWaitSeconds = 5f;
     public float stoppingDistance = 0.3f;
     public float stuckTimeout = 3f;
 
@@ -15,25 +14,22 @@ public class Pedestrian : MonoBehaviour
         WalkingToQueue,
         WaitingInQueue,
         WaitingForTrain,
+        Boarding,
     }
+
+    private static Train train;
 
     private NavMeshAgent agent;
     private PlatformEnd originSpawner;
     private WaitingQueue waitingQueue;
     private State state;
-    private Vector3 destination;
     private Utils.PlatformEndId destinationId;
-    private float waitTimer = 5f;
-    private float arrivalStallTimer;
 
     public void Initialize(PlatformEnd originSpawner, Utils.PlatformEndId destinationId, Vector3 destination)
     {
         this.originSpawner = originSpawner;
         this.destinationId = destinationId;
-        this.destination = destination;
-        agent = GetComponent<NavMeshAgent>();
-        agent.speed = walkSpeed;
-        agent.stoppingDistance = stoppingDistance;
+        SetupAgent();
 
         state = State.WalkingToDestination;
         agent.SetDestination(destination);
@@ -44,11 +40,12 @@ public class Pedestrian : MonoBehaviour
         this.originSpawner = originSpawner;
         this.destinationId = destinationId;
         this.waitingQueue = waitingQueue;
-        this.destination = destination;
+        SetupAgent();
 
-        agent = GetComponent<NavMeshAgent>();
-        agent.speed = walkSpeed;
-        agent.stoppingDistance = stoppingDistance;
+        if (train == null)
+        {
+            train = FindFirstObjectByType<Train>();
+        }
 
         waitingQueue.Enqueue(gameObject, out Vector3 slotPosition);
         state = State.WalkingToQueue;
@@ -61,6 +58,17 @@ public class Pedestrian : MonoBehaviour
         agent.SetDestination(newSlotPosition);
     }
 
+    private void SetupAgent()
+    {
+        agent = GetComponent<NavMeshAgent>();
+        agent.speed = walkSpeed;
+        agent.stoppingDistance = stoppingDistance;
+
+        // Identical avoidance priority across every pedestrian lets NavMeshAgent's local avoidance
+        // deadlock when several converge on a tight single-file queue; stagger it so ties don't happen.
+        agent.avoidancePriority = Random.Range(1, 99);
+    }
+
     private bool HasArrived()
     {
         if (agent.pathPending)
@@ -70,15 +78,6 @@ public class Pedestrian : MonoBehaviour
 
         if (agent.remainingDistance <= agent.stoppingDistance)
         {
-            arrivalStallTimer = 0f;
-            return true;
-        }
-
-        // prevent stuck
-        arrivalStallTimer += Time.deltaTime;
-        if (arrivalStallTimer >= stuckTimeout && agent.velocity.sqrMagnitude < 0.01f)
-        {
-            arrivalStallTimer = 0f;
             return true;
         }
 
@@ -103,12 +102,22 @@ public class Pedestrian : MonoBehaviour
         }
         else if (state == State.WaitingForTrain)
         {
-            waitTimer -= Time.deltaTime;
-            if (waitTimer <= 0f)
+            if (train != null && waitingQueue.IsFirst(gameObject) && train.IsAtStation(waitingQueue.stationId))
             {
-                state = State.WalkingToDestination;
-                agent.SetDestination(destination);
-                waitingQueue.Dequeue(gameObject);
+                TrainSeat seat = train.ReserveSeat();
+                if (seat != null)
+                {
+                    waitingQueue.Dequeue(gameObject);
+                    state = State.Boarding;
+                    agent.SetDestination(seat.transform.position);
+                }
+            }
+        }
+        else if (state == State.Boarding)
+        {
+            if (HasArrived())
+            {
+                Despawn();
             }
         }
         else if (state == State.WalkingToDestination)
