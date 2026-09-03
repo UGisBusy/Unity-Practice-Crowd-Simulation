@@ -1529,7 +1529,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   gateWidth: 10
-  trainStopDuration: 5
+  trainStopDuration: 10
 --- !u!4 &129393017
 Transform:
   m_ObjectHideFlags: 0
@@ -3153,7 +3153,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 7593751267401791472, guid: 934e3cacae0c2a043a60fd519201821b, type: 3}
       propertyPath: m_LocalPosition.z
-      value: 6
+      value: 6.5
       objectReference: {fileID: 0}
     - target: {fileID: 7593751267401791472, guid: 934e3cacae0c2a043a60fd519201821b, type: 3}
       propertyPath: m_LocalRotation.w

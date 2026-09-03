@@ -43,7 +43,7 @@ public class PlatformEnd : MonoBehaviour
     private List<Utils.PlatformEndId> destinationPollArray = new List<Utils.PlatformEndId>();
 
 
-    public void Initilize(PlatformEnd otherEnd, Utils.PlatformEndId id, Station station)
+    public void Initialize(PlatformEnd otherEnd, Utils.PlatformEndId id, Station station)
     {
         this.otherEnd = otherEnd;
         this.id = id;
@@ -55,8 +55,18 @@ public class PlatformEnd : MonoBehaviour
             platformNavMesh.BuildNavMesh();
         }
         PopulateDestinationPollArray();
+        ApplyPlatformColor();
 
         StartCoroutine(SpawnPedestrianCoroutine());
+    }
+
+    private void ApplyPlatformColor()
+    {
+        Renderer platformRenderer = GetComponent<Renderer>();
+        if (platformRenderer != null)
+        {
+            platformRenderer.material.color = Utils.GetPlatformColor(id);
+        }
     }
 
     private IEnumerator SpawnPedestrianCoroutine()
@@ -87,7 +97,7 @@ public class PlatformEnd : MonoBehaviour
             Random.Range(-0.5f, 0.5f),
             Random.Range(-0.5f, 0.5f),
             Random.Range(-0.5f, 0.5f));
-        Vector3 spawnPosition = transform.TransformPoint(localPoint);
+        Vector3 spawnPosition = GetRandomPosition(localPoint);
         Vector3 oppositePosition = otherEnd.transform.TransformPoint(localPoint);
 
         GameObject pedestrianObj = Instantiate(pedestrianPrefab, spawnPosition, Quaternion.identity);
@@ -104,11 +114,23 @@ public class PlatformEnd : MonoBehaviour
         {
             // passenger
             WaitingQueue queue = station.ChooseQueue(spawnPosition);
-            pedestrian.InitializeWithQueue(this, destinationId, queue, oppositePosition);
+            pedestrian.InitializePassenger(this, destinationId, queue);
         }
 
         pedestrianCount++;
         pedestrians.Add(pedestrian);
+    }
+
+    public Vector3 GetRandomPosition(Vector3? localPoint)
+    {
+        if (localPoint == null)
+        {
+            localPoint = new Vector3(
+                Random.Range(-0.5f, 0.5f),
+                Random.Range(-0.5f, 0.5f),
+                Random.Range(-0.5f, 0.5f));
+        }
+        return transform.TransformPoint(localPoint.Value);
     }
 
 

@@ -1,9 +1,14 @@
+using System;
 using System.Collections.Generic;
 using UnityEngine;
 using Unity.AI.Navigation;
 
 public class Train : MonoBehaviour
 {
+    // Fired whenever the train comes to a stop at a station, with that station's index.
+    // Onboard passengers subscribe to this to know when to check whether they should disembark.
+    public event Action<int, Station> OnArrivedAtStation;
+
     [Header("References")]
     public Transform floor;
     public NavMeshSurface navMeshSurface;
@@ -13,10 +18,6 @@ public class Train : MonoBehaviour
     public float width = 20f;
     public float floorHeight = 0.15f;
 
-    [Header("Gate")]
-    public Transform platformGatePoint;
-    public float defaultBridgeDistance = 1.5f;
-
     [Header("Seats")]
     public int seatCountEachSide = 20;
     public float seatSize = 1f;
@@ -25,23 +26,30 @@ public class Train : MonoBehaviour
     [Header("Movement")]
     public float moveSpeed = 20f;
 
+    public float gateDistance = 2f;
+
+
     public bool isArrived;
 
     private float gateWidth;
-    private Network network;
-    private Vector3[] routePositions;
+    private List<Station> stations;
+    private Vector3 anchorOffset;
     private Vector3 currentTarget;
     private int pendingStationIndex;
-    private List<TrainSeat> seats = new List<TrainSeat>();
     private NavMeshLink gateLink;
+    private List<TrainSeat> seats = new List<TrainSeat>();
     private Renderer gateMarkerRenderer;
+
+    public int waitToken;
 
     public int CurrentStationIndex { get; private set; }
 
-    public void Initialize(Network network, float gateWidth, Vector3[] stationPositions)
+    public void Initialize(List<Station> stations, float gateWidth)
     {
+        this.stations = stations;
         this.gateWidth = gateWidth;
-        this.network = network;
+
+        waitToken = 0;
 
         ResizeFloor();
         SpawnSeats();
@@ -52,17 +60,11 @@ public class Train : MonoBehaviour
             navMeshSurface.BuildNavMesh();
         }
 
-        if (stationPositions == null || stationPositions.Length == 0)
+        if (stations == null || stations.Count == 0)
         {
             return;
         }
-        Vector3 anchorOffset = transform.position - stationPositions[0];
-        routePositions = new Vector3[stationPositions.Length];
-        for (int i = 0; i < stationPositions.Length; i++)
-        {
-            routePositions[i] = stationPositions[i] + anchorOffset;
-        }
-
+        anchorOffset = transform.position - stations[0].gatePosition;
         currentTarget = transform.position;
         isArrived = true;
         CurrentStationIndex = 0;
@@ -71,12 +73,12 @@ public class Train : MonoBehaviour
 
     public void GoToStation(int stationIndex)
     {
-        if (routePositions == null || stationIndex < 0 || stationIndex >= routePositions.Length)
+        if (stations == null || stationIndex < 0 || stationIndex >= stations.Count)
         {
             return;
         }
 
-        currentTarget = routePositions[stationIndex];
+        currentTarget = stations[stationIndex].gatePosition + anchorOffset;
         pendingStationIndex = stationIndex;
         isArrived = false;
         SetGateOpen(false);
@@ -114,6 +116,7 @@ public class Train : MonoBehaviour
             isArrived = true;
             CurrentStationIndex = pendingStationIndex;
             SetGateOpen(true);
+            OnArrivedAtStation?.Invoke(CurrentStationIndex, stations[CurrentStationIndex]);
         }
     }
 
@@ -183,26 +186,24 @@ public class Train : MonoBehaviour
 
     private void SpawnGate()
     {
-        float padding = 1f;
-
         // Threshold sits on the train's near edge, facing the platform (-Z, toward the gate).
         GameObject gate = new GameObject("Gate");
         gate.transform.SetParent(transform, false);
-        gate.transform.localPosition = new Vector3(0f, floorHeight, -width / 2f);
+        gate.transform.localPosition = new Vector3(0f, floorHeight, -gateWidth / 2 + 0.7f);
 
         gateLink = gate.AddComponent<NavMeshLink>();
         gateLink.enabled = false;
-        gateLink.startPoint = new Vector3(0f, 0f, padding);
-        gateLink.endPoint = platformGatePoint != null
-            ? gate.transform.InverseTransformPoint(platformGatePoint.position)
-            : new Vector3(0f, 0f, -defaultBridgeDistance);
+        gateLink.startPoint = new Vector3(0f, 0f, 0f);
+        gateLink.endPoint = new Vector3(0f, 0f, -gateDistance);
         gateLink.width = gateWidth;
         gateLink.bidirectional = true;
 
+
         GameObject marker = GameObject.CreatePrimitive(PrimitiveType.Cube);
         marker.name = "GateMarker";
-        marker.transform.SetParent(gate.transform, false);
-        marker.transform.localScale = new Vector3(gateWidth, 0.05f, 0.4f);
+        marker.transform.SetParent(gateLink.transform, false);
+        marker.transform.localScale = new Vector3(gateWidth, 0.05f, gateDistance);
+        marker.transform.localPosition = new Vector3(0f, 0f, -gateDistance / 2f);
         Destroy(marker.GetComponent<BoxCollider>());
         gateMarkerRenderer = marker.GetComponent<Renderer>();
         gateMarkerRenderer.enabled = false;

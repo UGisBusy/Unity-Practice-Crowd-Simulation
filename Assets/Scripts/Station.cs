@@ -46,8 +46,8 @@ public class Station : MonoBehaviour
 
     private void InitializePlatormEnds()
     {
-        platformEndA.Initilize(platformEndB, (Utils.PlatformEndId)(id * 2), this);
-        platformEndB.Initilize(platformEndA, (Utils.PlatformEndId)(id * 2 + 1), this);
+        platformEndA.Initialize(platformEndB, (Utils.PlatformEndId)(id * 2), this);
+        platformEndB.Initialize(platformEndA, (Utils.PlatformEndId)(id * 2 + 1), this);
     }
 
     private WaitingQueue BuildWaitingQueue(PlatformEnd platformEnd, PlatformEnd otherEnd)
@@ -75,6 +75,12 @@ public class Station : MonoBehaviour
         }
 
         return queueA.Count < queueB.Count ? queueA : queueB;
+    }
+
+    public Vector3 GetRandomPositionAtPlatform(Utils.PlatformEndId id)
+    {
+        PlatformEnd platformEnd = ((int)id % 2 == 0) ? platformEndA : platformEndB;
+        return platformEnd.GetRandomPosition(null);
     }
 
     void Start()

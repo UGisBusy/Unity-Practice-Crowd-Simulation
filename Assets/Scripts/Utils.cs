@@ -20,4 +20,15 @@ public static class Utils
         return (int)id1 / 2 == (int)id2 / 2;
     }
 
+    public static int GetStationId(PlatformEndId id)
+    {
+        return (int)id / 2;
+    }
+
+    public static Color GetPlatformColor(PlatformEndId id)
+    {
+        float hue = (float)id / (float)STATION_COUNT / 2;
+        return Color.HSVToRGB(hue, 1f, 1f);
+    }
+
 }

@@ -15,6 +15,8 @@ public class Pedestrian : MonoBehaviour
         WaitingInQueue,
         WaitingForTrain,
         Boarding,
+        Onboard,
+        Disembarking,
     }
 
     private static Train train;
@@ -24,6 +26,10 @@ public class Pedestrian : MonoBehaviour
     private WaitingQueue waitingQueue;
     private State state;
     private Utils.PlatformEndId destinationId;
+    private TrainSeat reservedSeat;
+
+    // TODO: find better way
+    private Vector3 finalPosition;
 
     public void Initialize(PlatformEnd originSpawner, Utils.PlatformEndId destinationId, Vector3 destination)
     {
@@ -35,7 +41,7 @@ public class Pedestrian : MonoBehaviour
         agent.SetDestination(destination);
     }
 
-    public void InitializeWithQueue(PlatformEnd originSpawner, Utils.PlatformEndId destinationId, WaitingQueue waitingQueue, Vector3 destination)
+    public void InitializePassenger(PlatformEnd originSpawner, Utils.PlatformEndId destinationId, WaitingQueue waitingQueue)
     {
         this.originSpawner = originSpawner;
         this.destinationId = destinationId;
@@ -66,6 +72,12 @@ public class Pedestrian : MonoBehaviour
 
         // prevent pedestrians from getting stuck on each other by randomizing avoidance priority
         agent.avoidancePriority = Random.Range(1, 99);
+
+        Renderer pedestrianRenderer = GetComponent<Renderer>();
+        if (pedestrianRenderer != null)
+        {
+            pedestrianRenderer.material.color = Utils.GetPlatformColor(destinationId);
+        }
     }
 
     private bool HasArrived()
@@ -106,7 +118,9 @@ public class Pedestrian : MonoBehaviour
                 TrainSeat seat = train.ReserveSeat();
                 if (seat != null)
                 {
+                    train.waitToken++;
                     waitingQueue.Dequeue(gameObject);
+                    reservedSeat = seat;
                     state = State.Boarding;
                     agent.SetDestination(seat.transform.position);
                 }
@@ -116,7 +130,20 @@ public class Pedestrian : MonoBehaviour
         {
             if (HasArrived())
             {
-                Despawn();
+                state = State.Onboard;
+                train.waitToken--;
+                transform.SetParent(train.transform, true);
+                agent.enabled = false;
+                train.OnArrivedAtStation += HandleTrainArrivedAtStation;
+            }
+        }
+        else if (state == State.Disembarking)
+        {
+            if (HasArrived())
+            {
+                train.waitToken--;
+                state = State.WalkingToDestination;
+                agent.SetDestination(finalPosition);
             }
         }
         else if (state == State.WalkingToDestination)
@@ -125,6 +152,35 @@ public class Pedestrian : MonoBehaviour
             {
                 Despawn();
             }
+        }
+    }
+
+    private void HandleTrainArrivedAtStation(int stationIndex, Station station)
+    {
+        if (stationIndex != Utils.GetStationId(destinationId))
+        {
+            return;
+        }
+
+        train.OnArrivedAtStation -= HandleTrainArrivedAtStation;
+        reservedSeat.IsOccupied = false;
+        reservedSeat = null;
+
+        transform.SetParent(null, true);
+        agent.enabled = true;
+
+        train.waitToken++;
+
+        state = State.Disembarking;
+        agent.SetDestination(station.gatePosition);
+        finalPosition = station.GetRandomPositionAtPlatform(destinationId);
+    }
+
+    void OnDestroy()
+    {
+        if (state == State.Onboard && train != null)
+        {
+            train.OnArrivedAtStation -= HandleTrainArrivedAtStation;
         }
     }
 

@@ -1,3 +1,4 @@
+using System.Collections.Generic;
 using System.Runtime.CompilerServices;
 using UnityEngine;
 
@@ -13,8 +14,7 @@ public class Network : MonoBehaviour
     public float gateWidth = 10f;
     public float trainStopDuration = 5f;
 
-    private Station[] stations;
-    private Vector3[] stationGatePositions;
+    private List<Station> stations;
     private Train train;
     private int trainStationIndex;
     private int trainDirection;
@@ -23,7 +23,7 @@ public class Network : MonoBehaviour
 
     void Start()
     {
-        stations = GetComponentsInChildren<Station>();
+        stations = new List<Station>(GetComponentsInChildren<Station>());
         InitializeStations();
 
         train = FindFirstObjectByType<Train>();
@@ -43,7 +43,7 @@ public class Network : MonoBehaviour
     private void InitializeStations()
     {
         // hard check station number
-        if (stations.Length != Utils.STATION_COUNT)
+        if (stations.Count != Utils.STATION_COUNT)
         {
             Debug.LogError($"Number of Station must be {Utils.STATION_COUNT}");
             return;
@@ -63,13 +63,7 @@ public class Network : MonoBehaviour
             return;
         }
 
-        stationGatePositions = new Vector3[stations.Length];
-        for (int i = 0; i < stations.Length; i++)
-        {
-            stationGatePositions[i] = stations[i].gatePosition;
-        }
-
-        train.Initialize(this, gateWidth, stationGatePositions);
+        train.Initialize(stations, gateWidth);
         trainStationIndex = 0;
         trainDirection = 1;
         trainState = TrainState.Waiting;
@@ -78,7 +72,7 @@ public class Network : MonoBehaviour
 
     private void UpdateTrain()
     {
-        if (train == null || stationGatePositions == null || stationGatePositions.Length < 2)
+        if (train == null)
         {
             return;
         }
@@ -86,7 +80,7 @@ public class Network : MonoBehaviour
         if (trainState == TrainState.Waiting)
         {
             trainStopTimer -= Time.deltaTime;
-            if (trainStopTimer <= 0f)
+            if (trainStopTimer <= 0f && train.waitToken == 0)
             {
                 trainState = TrainState.Moving;
                 AdvanceTrain();
@@ -105,13 +99,13 @@ public class Network : MonoBehaviour
 
     private void AdvanceTrain()
     {
-        if (train == null || stationGatePositions == null || stationGatePositions.Length < 2)
+        if (train == null)
         {
             return;
         }
 
         int next = trainStationIndex + trainDirection;
-        if (next < 0 || next >= stationGatePositions.Length)
+        if (next < 0 || next >= stations.Count)
         {
             trainDirection = -trainDirection;
             next = trainStationIndex + trainDirection;
