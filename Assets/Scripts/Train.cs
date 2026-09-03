@@ -14,7 +14,6 @@ public class Train : MonoBehaviour
     public float floorHeight = 0.15f;
 
     [Header("Gate")]
-
     public float gateOpenInterval = 10f;
     public Transform platformGatePoint;
     public float defaultBridgeDistance = 1.5f;
@@ -24,11 +23,19 @@ public class Train : MonoBehaviour
     public float seatSize = 1f;
     public float margin = 1f;
 
-    private float gateWidth;
+    [Header("Movement")]
+    public float moveSpeed = 20f;
 
-    public void Initialize(float gateWidth)
+    private float gateWidth;
+    private Network network;
+    private Vector3[] routePositions;
+    private Vector3 currentTarget;
+    private bool isMoving;
+
+    public void Initialize(Network network, float gateWidth, Vector3[] stationPositions)
     {
         this.gateWidth = gateWidth;
+        this.network = network;
 
         ResizeFloor();
         SpawnSeats();
@@ -38,9 +45,47 @@ public class Train : MonoBehaviour
         {
             navMeshSurface.BuildNavMesh();
         }
+
+        if (stationPositions == null || stationPositions.Length == 0)
+        {
+            return;
+        }
+        Vector3 anchorOffset = transform.position - stationPositions[0];
+        routePositions = new Vector3[stationPositions.Length];
+        for (int i = 0; i < stationPositions.Length; i++)
+        {
+            routePositions[i] = stationPositions[i] + anchorOffset;
+        }
+
+        currentTarget = transform.position;
+        isMoving = false;
     }
 
+    public void GoToStation(int stationIndex)
+    {
+        if (routePositions == null || stationIndex < 0 || stationIndex >= routePositions.Length)
+        {
+            return;
+        }
 
+        currentTarget = routePositions[stationIndex];
+        isMoving = true;
+    }
+
+    void Update()
+    {
+        if (!isMoving)
+        {
+            return;
+        }
+
+        transform.position = Vector3.MoveTowards(transform.position, currentTarget, moveSpeed * Time.deltaTime);
+        if (transform.position == currentTarget)
+        {
+            isMoving = false;
+            network.OnTrainArrive();
+        }
+    }
 
     private void ResizeFloor()
     {
