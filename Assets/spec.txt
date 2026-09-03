@@ -21,7 +21,7 @@ Here are more details about the scene:
 Here are some detailed requirements:
 - Crowd Spawner
     - Configurable spawn interval
-    - Configurable global pedestrian limit
+    - Configurable pedestrian limit for each station
     - Configurable goal weights for spawned pedestrians
 - Pedestrian
     - Configurable walking speed

@@ -9,31 +9,27 @@ public class Train : MonoBehaviour
     public NavMeshSurface navMeshSurface;
 
     [Header("Dimensions")]
-    public float length = 40f;
-    public float width = 6f;
+    public float length = 80f;
+    public float width = 20f;
     public float floorHeight = 0.15f;
 
     [Header("Gate")]
 
-    [Tooltip("Seconds between the gate toggling open/closed.")]
     public float gateOpenInterval = 10f;
-    [Tooltip("The station platform's gate point this train bridges to when docked. Assign when placing the train next to a platform.")]
     public Transform platformGatePoint;
-    [Tooltip("Fallback bridge length used when platformGatePoint isn't assigned.")]
     public float defaultBridgeDistance = 1.5f;
 
     [Header("Seats")]
     public int seatCountEachSide = 20;
-    public float seatSize = 0.4f;
-    [Tooltip("Distance of each seat row from the side wall.")]
-    public float seatRowInset = 0.8f;
-    [Tooltip("Margin kept clear at both ends of the train.")]
-    public float endMargin = 0.8f;
+    public float seatSize = 1f;
+    public float margin = 1f;
 
-    // TODO: assign by network
-    private float gateWidth = 3f;
-    void Awake()
+    private float gateWidth;
+
+    public void Initialize(float gateWidth)
     {
+        this.gateWidth = gateWidth;
+
         ResizeFloor();
         SpawnSeats();
         SpawnGate();
@@ -43,6 +39,8 @@ public class Train : MonoBehaviour
             navMeshSurface.BuildNavMesh();
         }
     }
+
+
 
     private void ResizeFloor()
     {
@@ -61,7 +59,7 @@ public class Train : MonoBehaviour
         seatsParent.SetParent(transform, false);
 
         List<float> slots = GetSeatSlotPositions();
-        float rowZ = width / 2f - seatRowInset;
+        float rowZ = width / 2f - margin;
 
         int seatIndex = 0;
         for (int row = 0; row < 2; row++)
@@ -79,10 +77,10 @@ public class Train : MonoBehaviour
     {
         List<float> slots = new List<float>();
 
-        float halfLength = length / 2f - endMargin;
+        float halfLength = length / 2f - margin;
         float halfGate = gateWidth / 2f;
 
-        float availableLength = length - 2f * endMargin - gateWidth;
+        float availableLength = length - 2f * margin - gateWidth;
         float spacing = availableLength / (seatCountEachSide - 1);
 
         for (int i = 0; i < seatCountEachSide; i++)

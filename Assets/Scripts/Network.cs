@@ -4,13 +4,18 @@ using UnityEngine;
 public class Network : MonoBehaviour
 {
 
-    public float gateWidth = 3f;
+    public float gateWidth = 10f;
     private Station[] stations;
+
+    private Train train;
 
     void Start()
     {
         stations = GetComponentsInChildren<Station>();
         InitialzeStatoins();
+
+        train = GetComponentInChildren<Train>();
+        InitializeTrain();
     }
 
     void Update()
@@ -31,5 +36,16 @@ public class Network : MonoBehaviour
         {
             stations[id].Initialize(id, gateWidth);
         }
+    }
+
+    private void InitializeTrain()
+    {
+        if (train == null)
+        {
+            Debug.LogError("Train not found in Network");
+            return;
+        }
+
+        train.Initialize(gateWidth);
     }
 }
