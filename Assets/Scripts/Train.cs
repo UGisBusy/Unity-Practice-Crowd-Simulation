@@ -46,7 +46,11 @@ public class Train : MonoBehaviour
         ResizeFloor();
         SpawnSeats();
         SpawnGate();
-        RebuildInteriorNavMesh();
+
+        if (navMeshSurface != null)
+        {
+            navMeshSurface.BuildNavMesh();
+        }
 
         if (stationPositions == null || stationPositions.Length == 0)
         {
@@ -110,18 +114,6 @@ public class Train : MonoBehaviour
             isArrived = true;
             CurrentStationIndex = pendingStationIndex;
             SetGateOpen(true);
-            RebuildInteriorNavMesh();
-        }
-    }
-
-    // NavMeshSurface bakes a static, world-space navmesh; it does not follow the train's transform
-    // as it moves between stations. Rebake after every stop so the interior navmesh (seats, floor)
-    // lines up with where the train actually is, otherwise boarding pedestrians have nothing to path onto.
-    private void RebuildInteriorNavMesh()
-    {
-        if (navMeshSurface != null)
-        {
-            navMeshSurface.BuildNavMesh();
         }
     }
 

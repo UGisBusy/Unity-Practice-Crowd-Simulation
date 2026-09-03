@@ -64,8 +64,7 @@ public class Pedestrian : MonoBehaviour
         agent.speed = walkSpeed;
         agent.stoppingDistance = stoppingDistance;
 
-        // Identical avoidance priority across every pedestrian lets NavMeshAgent's local avoidance
-        // deadlock when several converge on a tight single-file queue; stagger it so ties don't happen.
+        // prevent pedestrians from getting stuck on each other by randomizing avoidance priority
         agent.avoidancePriority = Random.Range(1, 99);
     }
 
