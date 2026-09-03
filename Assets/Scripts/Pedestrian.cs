@@ -17,18 +17,19 @@ public class Pedestrian : MonoBehaviour
         WaitingForTrain,
     }
 
+    private NavMeshAgent agent;
     private PlatformEnd originSpawner;
     private WaitingQueue waitingQueue;
-    private NavMeshAgent agent;
     private State state;
     private Vector3 destination;
+    private Utils.PlatformEndId destinationId;
     private float waitTimer = 5f;
     private float arrivalStallTimer;
 
-    // Goal 1: walk straight to the opposite end.
-    public void Initialize(PlatformEnd originSpawner, Vector3 destination)
+    public void Initialize(PlatformEnd originSpawner, Utils.PlatformEndId destinationId, Vector3 destination)
     {
         this.originSpawner = originSpawner;
+        this.destinationId = destinationId;
         this.destination = destination;
         agent = GetComponent<NavMeshAgent>();
         agent.speed = walkSpeed;
@@ -38,9 +39,10 @@ public class Pedestrian : MonoBehaviour
         agent.SetDestination(destination);
     }
 
-    public void InitializeWithQueue(PlatformEnd originSpawner, WaitingQueue waitingQueue, Vector3 destination)
+    public void InitializeWithQueue(PlatformEnd originSpawner, Utils.PlatformEndId destinationId, WaitingQueue waitingQueue, Vector3 destination)
     {
         this.originSpawner = originSpawner;
+        this.destinationId = destinationId;
         this.waitingQueue = waitingQueue;
         this.destination = destination;
 
@@ -48,7 +50,6 @@ public class Pedestrian : MonoBehaviour
         agent.speed = walkSpeed;
         agent.stoppingDistance = stoppingDistance;
 
-        // TODO: logic messy, check success
         waitingQueue.Enqueue(gameObject, out Vector3 slotPosition);
         state = State.WalkingToQueue;
         agent.SetDestination(slotPosition);

@@ -13,9 +13,9 @@ public class PlatformEnd : MonoBehaviour
     public GameObject pedestrianPrefab;
     public NavMeshSurface platformNavMesh;
 
-    [Header("Goal Settings")]
+    [Header("Destination Settings")]
 
-    public int[] GoalWeights = new int[]
+    public int[] DestinationWeights = new int[]
     {
         1, // Station1A
         1, // Station1B
@@ -40,7 +40,7 @@ public class PlatformEnd : MonoBehaviour
     private List<Pedestrian> pedestrians;
 
     private Utils.PlatformEndId id;
-    private List<Utils.PlatformEndId> goalArray = new List<Utils.PlatformEndId>();
+    private List<Utils.PlatformEndId> destinationPollArray = new List<Utils.PlatformEndId>();
 
 
     public void Initilize(PlatformEnd otherEnd, Utils.PlatformEndId id, Station station)
@@ -54,7 +54,7 @@ public class PlatformEnd : MonoBehaviour
         {
             platformNavMesh.BuildNavMesh();
         }
-        PopulateGoalArray();
+        PopulateDestinationPollArray();
 
         StartCoroutine(SpawnPedestrianCoroutine());
     }
@@ -93,18 +93,18 @@ public class PlatformEnd : MonoBehaviour
         GameObject pedestrianObj = Instantiate(pedestrianPrefab, spawnPosition, Quaternion.identity);
         Pedestrian pedestrian = pedestrianObj.AddComponent<Pedestrian>();
 
-        Utils.PlatformEndId goalId = GetRandomGoalId();
+        Utils.PlatformEndId destinationId = GetRandomDestinationId();
 
-        if (Utils.IsSameStation(goalId, id))
+        if (Utils.IsSameStation(destinationId, id))
         {
             // passthrough
-            pedestrian.Initialize(this, oppositePosition);
+            pedestrian.Initialize(this, destinationId, oppositePosition);
         }
         else
         {
             // passenger
             WaitingQueue queue = station.ChooseQueue(spawnPosition);
-            pedestrian.InitializeWithQueue(this, queue, oppositePosition);
+            pedestrian.InitializeWithQueue(this, destinationId, queue, oppositePosition);
         }
 
         pedestrianCount++;
@@ -121,22 +121,22 @@ public class PlatformEnd : MonoBehaviour
         }
     }
 
-    private void PopulateGoalArray()
+    private void PopulateDestinationPollArray()
     {
-        for (int i = 0; i < GoalWeights.Length; i++)
+        for (int i = 0; i < DestinationWeights.Length; i++)
         {
             Utils.PlatformEndId id = (Utils.PlatformEndId)i;
             if (id == this.id) continue;
-            for (int j = 0; j < GoalWeights[i]; j++)
+            for (int j = 0; j < DestinationWeights[i]; j++)
             {
-                goalArray.Add(id);
+                destinationPollArray.Add(id);
             }
         }
     }
 
-    private Utils.PlatformEndId GetRandomGoalId()
+    private Utils.PlatformEndId GetRandomDestinationId()
     {
-        int i = Random.Range(0, goalArray.Count);
-        return goalArray[i];
+        int i = Random.Range(0, destinationPollArray.Count);
+        return destinationPollArray[i];
     }
 }
