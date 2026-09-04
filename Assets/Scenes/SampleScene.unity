@@ -167,8 +167,9 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 5fbd7313a7374fe43bad1f7086e54728, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  platformDepth: 20
+  platformDepth: 15
   gatePosition: {x: 0, y: 0, z: 0}
+  id: 0
 --- !u!1 &20000011
 GameObject:
   m_ObjectHideFlags: 0
@@ -627,8 +628,9 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 5fbd7313a7374fe43bad1f7086e54728, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  platformDepth: 20
+  platformDepth: 15
   gatePosition: {x: 0, y: 0, z: 0}
+  id: 0
 --- !u!1 &30000011
 GameObject:
   m_ObjectHideFlags: 0
@@ -1087,8 +1089,9 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 5fbd7313a7374fe43bad1f7086e54728, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  platformDepth: 20
+  platformDepth: 15
   gatePosition: {x: 0, y: 0, z: 0}
+  id: 0
 --- !u!1 &40000011
 GameObject:
   m_ObjectHideFlags: 0
@@ -1579,8 +1582,9 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 5fbd7313a7374fe43bad1f7086e54728, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  platformDepth: 20
+  platformDepth: 15
   gatePosition: {x: 0, y: 0, z: 0}
+  id: 0
 --- !u!4 &206673417
 Transform:
   m_ObjectHideFlags: 0
@@ -3098,6 +3102,10 @@ PrefabInstance:
     - target: {fileID: 900001001, guid: 934e3cacae0c2a043a60fd519201821b, type: 3}
       propertyPath: floorHeight
       value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 900001001, guid: 934e3cacae0c2a043a60fd519201821b, type: 3}
+      propertyPath: gateDistance
+      value: 2
       objectReference: {fileID: 0}
     - target: {fileID: 900001001, guid: 934e3cacae0c2a043a60fd519201821b, type: 3}
       propertyPath: defaultBridgeDistance

@@ -2,12 +2,11 @@ using System;
 using System.Collections.Generic;
 using UnityEngine;
 using Unity.AI.Navigation;
+using Unity.AppUI.UI;
 
 public class Train : MonoBehaviour
 {
-    // Fired whenever the train comes to a stop at a station, with that station's index.
-    // Onboard passengers subscribe to this to know when to check whether they should disembark.
-    public event Action<int, Station> OnArrivedAtStation;
+    public event Action<Station> OnArrivedAtStation;
 
     [Header("References")]
     public Transform floor;
@@ -41,13 +40,15 @@ public class Train : MonoBehaviour
     private Renderer gateMarkerRenderer;
 
     public int waitToken;
+    public int direction;
 
     public int CurrentStationIndex { get; private set; }
 
-    public void Initialize(List<Station> stations, float gateWidth)
+    public void Initialize(List<Station> stations, float gateWidth, int direction)
     {
         this.stations = stations;
         this.gateWidth = gateWidth;
+        this.direction = direction;
 
         waitToken = 0;
 
@@ -116,7 +117,17 @@ public class Train : MonoBehaviour
             isArrived = true;
             CurrentStationIndex = pendingStationIndex;
             SetGateOpen(true);
-            OnArrivedAtStation?.Invoke(CurrentStationIndex, stations[CurrentStationIndex]);
+
+            if (CurrentStationIndex == Utils.STATION_COUNT - 1)
+            {
+                direction = -1;
+            }
+            else if (CurrentStationIndex == 0)
+            {
+                direction = 1;
+            }
+
+            OnArrivedAtStation?.Invoke(stations[CurrentStationIndex]);
         }
     }
 
@@ -209,8 +220,6 @@ public class Train : MonoBehaviour
         gateMarkerRenderer.enabled = false;
     }
 
-    // The gate is open exactly while the train is docked at a station, so pedestrians can only
-    // cross the platform<->train NavMeshLink when boarding is actually possible.
     private void SetGateOpen(bool open)
     {
         if (gateLink != null)

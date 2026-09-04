@@ -3,7 +3,7 @@ using UnityEngine;
 public class Station : MonoBehaviour
 {
     [Tooltip("Distance from the line between the two PlatformEnds out to the gate, i.e. the platform's half-width.")]
-    public float platformDepth = 20f;
+    public float platformDepth = 15f;
 
     public Vector3 gatePosition;
 
@@ -13,9 +13,9 @@ public class Station : MonoBehaviour
     private WaitingQueue queueB;
 
     private float gateWidth;
-    private int id;
+    public int id;
 
-    public void Initialize(int id, float gateWidth)
+    public void Initialize(int id, float gateWidth, Train train)
     {
         this.id = id;
         this.gateWidth = gateWidth;
@@ -34,7 +34,10 @@ public class Station : MonoBehaviour
         queueA = BuildWaitingQueue(platformEndA, platformEndB);
         queueB = BuildWaitingQueue(platformEndB, platformEndA);
 
-        InitializePlatormEnds();
+        train.OnArrivedAtStation += queueA.HandleTrainArrivedAtStation;
+        train.OnArrivedAtStation += queueB.HandleTrainArrivedAtStation;
+
+        InitializePlaformEnds();
     }
 
     private void ComputeGatePosition()
@@ -44,7 +47,7 @@ public class Station : MonoBehaviour
         gatePosition = centerline + topDirection * platformDepth;
     }
 
-    private void InitializePlatormEnds()
+    private void InitializePlaformEnds()
     {
         platformEndA.Initialize(platformEndB, (Utils.PlatformEndId)(id * 2), this);
         platformEndB.Initialize(platformEndA, (Utils.PlatformEndId)(id * 2 + 1), this);
@@ -59,6 +62,7 @@ public class Station : MonoBehaviour
 
         float firstSlotOffset = gateWidth / 2f + waitingQueue.slotSpacing;
         waitingQueue.Initialize(gatePosition + lineDirection * firstSlotOffset, lineDirection);
+
         return waitingQueue;
     }
 

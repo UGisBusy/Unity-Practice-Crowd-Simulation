@@ -24,9 +24,9 @@ public class Network : MonoBehaviour
     void Start()
     {
         stations = new List<Station>(GetComponentsInChildren<Station>());
-        InitializeStations();
-
         train = FindFirstObjectByType<Train>();
+
+        InitializeStations();
         InitializeTrain();
     }
 
@@ -51,7 +51,7 @@ public class Network : MonoBehaviour
 
         for (int id = 0; id < Utils.STATION_COUNT; id++)
         {
-            stations[id].Initialize(id, gateWidth);
+            stations[id].Initialize(id, gateWidth, train);
         }
     }
 
@@ -63,9 +63,9 @@ public class Network : MonoBehaviour
             return;
         }
 
-        train.Initialize(stations, gateWidth);
-        trainStationIndex = 0;
         trainDirection = 1;
+        train.Initialize(stations, gateWidth, trainDirection);
+        trainStationIndex = 0;
         trainState = TrainState.Waiting;
         trainStopTimer = trainStopDuration;
     }
@@ -114,5 +114,4 @@ public class Network : MonoBehaviour
         trainStationIndex = next;
         train.GoToStation(trainStationIndex);
     }
-
 }

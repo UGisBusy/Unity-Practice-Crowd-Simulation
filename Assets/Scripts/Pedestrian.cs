@@ -8,23 +8,24 @@ public class Pedestrian : MonoBehaviour
     public float stoppingDistance = 0.3f;
     public float stuckTimeout = 3f;
 
-    private enum State
+    public enum State
     {
         WalkingToDestination,
         WalkingToQueue,
         WaitingInQueue,
-        WaitingForTrain,
         Boarding,
         Onboard,
         Disembarking,
     }
 
     private static Train train;
-
     private NavMeshAgent agent;
+    private NavMeshObstacle obstacle;
     private PlatformEnd originSpawner;
     private WaitingQueue waitingQueue;
-    private State state;
+
+    // TODO: debug
+    public State state;
     private Utils.PlatformEndId destinationId;
     private TrainSeat reservedSeat;
 
@@ -53,7 +54,7 @@ public class Pedestrian : MonoBehaviour
             train = FindFirstObjectByType<Train>();
         }
 
-        waitingQueue.Enqueue(gameObject, out Vector3 slotPosition);
+        waitingQueue.Enqueue(this, out Vector3 slotPosition);
         state = State.WalkingToQueue;
         agent.SetDestination(slotPosition);
     }
@@ -80,14 +81,15 @@ public class Pedestrian : MonoBehaviour
         }
     }
 
-    private bool HasArrived()
+    private bool HasArrived(bool soft = false)
     {
         if (agent.pathPending)
         {
             return false;
         }
 
-        if (agent.remainingDistance <= agent.stoppingDistance)
+        float factor = soft ? 2f : 1f;
+        if (agent.remainingDistance <= agent.stoppingDistance * factor)
         {
             return true;
         }
@@ -101,28 +103,32 @@ public class Pedestrian : MonoBehaviour
         {
             if (HasArrived())
             {
-                if (waitingQueue.IsFirst(gameObject))
+                state = State.WaitingInQueue;
+            }
+        }
+        else if (state == State.WaitingInQueue)
+        {
+            if (train != null && waitingQueue.CanOnboard(this) && train.IsAtStation(waitingQueue.stationId))
+            {
+                int currentStationId = waitingQueue.stationId;
+                int destinationStationId = Utils.GetStationId(destinationId);
+                int direction = (destinationStationId > currentStationId) ? 1 : -1;
+
+                if (direction != train.direction)
                 {
-                    state = State.WaitingForTrain;
+                    waitingQueue.AdvanceCandidate();
                 }
                 else
                 {
-                    state = State.WaitingInQueue;
-                }
-            }
-        }
-        else if (state == State.WaitingForTrain)
-        {
-            if (train != null && waitingQueue.IsFirst(gameObject) && train.IsAtStation(waitingQueue.stationId))
-            {
-                TrainSeat seat = train.ReserveSeat();
-                if (seat != null)
-                {
-                    train.waitToken++;
-                    waitingQueue.Dequeue(gameObject);
-                    reservedSeat = seat;
-                    state = State.Boarding;
-                    agent.SetDestination(seat.transform.position);
+                    TrainSeat seat = train.ReserveSeat();
+                    if (seat != null)
+                    {
+                        train.waitToken++;
+                        waitingQueue.Dequeue(this);
+                        reservedSeat = seat;
+                        state = State.Boarding;
+                        agent.SetDestination(seat.transform.position);
+                    }
                 }
             }
         }
@@ -133,13 +139,24 @@ public class Pedestrian : MonoBehaviour
                 state = State.Onboard;
                 train.waitToken--;
                 transform.SetParent(train.transform, true);
+
                 agent.enabled = false;
+                if (obstacle == null)
+                {
+                    obstacle = gameObject.AddComponent<NavMeshObstacle>();
+                    obstacle.shape = NavMeshObstacleShape.Capsule;
+                    obstacle.radius = agent.radius;
+                    obstacle.height = agent.height;
+                    obstacle.carving = true;
+                }
+                obstacle.enabled = true;
+
                 train.OnArrivedAtStation += HandleTrainArrivedAtStation;
             }
         }
         else if (state == State.Disembarking)
         {
-            if (HasArrived())
+            if (HasArrived(true))
             {
                 train.waitToken--;
                 state = State.WalkingToDestination;
@@ -155,9 +172,9 @@ public class Pedestrian : MonoBehaviour
         }
     }
 
-    private void HandleTrainArrivedAtStation(int stationIndex, Station station)
+    private void HandleTrainArrivedAtStation(Station station)
     {
-        if (stationIndex != Utils.GetStationId(destinationId))
+        if (station.id != Utils.GetStationId(destinationId))
         {
             return;
         }
@@ -167,6 +184,7 @@ public class Pedestrian : MonoBehaviour
         reservedSeat = null;
 
         transform.SetParent(null, true);
+        obstacle.enabled = false;
         agent.enabled = true;
 
         train.waitToken++;

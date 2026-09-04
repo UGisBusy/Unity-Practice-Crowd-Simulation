@@ -13,7 +13,9 @@ public class WaitingQueue
 
     public int maxSlot = 1000;
 
-    private Queue<GameObject> queue = new Queue<GameObject>();
+    private LinkedList<Pedestrian> queue;
+
+    private LinkedListNode<Pedestrian> onboardCandidate;
 
     public int Count => queue.Count;
 
@@ -21,9 +23,10 @@ public class WaitingQueue
     {
         this.originPosition = originPosition;
         this.lineDirection = lineDirection.normalized;
+        queue = new LinkedList<Pedestrian>();
     }
 
-    public bool Enqueue(GameObject pedestrian, out Vector3 slotPosition)
+    public bool Enqueue(Pedestrian pedestrian, out Vector3 slotPosition)
     {
         slotPosition = Vector3.zero;
         if (IsFull())
@@ -32,19 +35,24 @@ public class WaitingQueue
         }
 
         slotPosition = GetSlotPosition(queue.Count);
-        queue.Enqueue(pedestrian);
+        queue.AddLast(pedestrian);
 
+        if (onboardCandidate == null)
+        {
+            onboardCandidate = queue.Last;
+        }
         return true;
     }
 
-    public bool Dequeue(GameObject pedestrian)
+    public bool Dequeue(Pedestrian pedestrian)
     {
-        if (queue.Count == 0 || queue.First() != pedestrian)
+        if (onboardCandidate == null || onboardCandidate.Value != pedestrian)
         {
             return false;
         }
-
-        queue.Dequeue();
+        LinkedListNode<Pedestrian> nextCandidate = (onboardCandidate.Previous != null) ? onboardCandidate.Previous : onboardCandidate.Next;
+        queue.Remove(onboardCandidate);
+        onboardCandidate = nextCandidate;
         AdvanceAll();
         return true;
     }
@@ -57,10 +65,9 @@ public class WaitingQueue
         }
 
         int newSlot = 0;
-        foreach (GameObject pedestrianObj in queue)
+        foreach (Pedestrian pedestrian in queue)
         {
             Vector3 newSlotPosition = GetSlotPosition(newSlot);
-            Pedestrian pedestrian = pedestrianObj.GetComponent<Pedestrian>();
 
             pedestrian.AdvanceInQueue(newSlotPosition);
             newSlot++;
@@ -72,9 +79,13 @@ public class WaitingQueue
         return queue.Count >= maxSlot;
     }
 
-    public bool IsFirst(GameObject pedestrian)
+    public bool CanOnboard(Pedestrian pedestrain)
     {
-        return queue.Count > 0 && queue.Peek() == pedestrian;
+        if (onboardCandidate == null)
+        {
+            return false;
+        }
+        return onboardCandidate.Value == pedestrain;
     }
 
     public Vector3 GetSlotPosition(int slot)
@@ -82,4 +93,17 @@ public class WaitingQueue
         return originPosition + lineDirection * slot * slotSpacing;
     }
 
+    public void HandleTrainArrivedAtStation(Station station)
+    {
+        onboardCandidate = queue.First;
+    }
+
+    public void AdvanceCandidate()
+    {
+        if (onboardCandidate == null)
+        {
+            return;
+        }
+        onboardCandidate = onboardCandidate.Next;
+    }
 }
